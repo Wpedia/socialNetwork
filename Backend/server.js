@@ -1,32 +1,44 @@
-import express from "express"
-import dotenv from "dotenv"
-import cookieParser from "cookie-parser"
+import express from 'express';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import fileUpload from 'express-fileupload';
+import path from 'path'
 
-import authRoutes from "./routes/auth.routes.js"
-import messageRoutes from "./routes/message.routes.js"
-import userRoutes from "./routes/user.routes.js"
+import connectToMongoDB from './db/connectToMongoDB.js';
+import { app, server } from './socket/socket.js';
+import authRoutes from './routes/auth.routes.js';
+import messageRoutes from './routes/message.routes.js';
+import userRoutes from './routes/user.routes.js';
+import profileRoutes from './routes/profile.routes.js';
+import postRoutes from './routes/post.routes.js';
+import cors from './middleware/cors.middleware.js';
 
-import connectToMongoDB from "./db/connectToMongoDB.js"
+const PORT = process.env.PORT || 5000;
 
-const app = express()
-const PORT = process.env.PORT || 5000
+const __dirname = path.resolve()
 
-dotenv.config()
+dotenv.config();
 
-app.use(express.json()) // parse from req.body
-app.use(cookieParser()) // parse from req.body
+app.use(fileUpload({}));
+app.use(cors);
+app.use(express.static('static'));
+app.use(express.json());
+app.use(cookieParser());
 
-app.use("/api/auth", authRoutes)
-app.use("/api/messages", messageRoutes)
-app.use("/api/users", userRoutes)
+app.use('/api/avatar', userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/post', postRoutes);
 
-// app.get("/", (req, res) => {
-//     //root route http://localhost:5000/
-//     res.send("hello1ff1")
-// })
+app.use(express.static(path.join(__dirname, "/frontend/dist")))
 
-
-app.listen(PORT, () => {
-    connectToMongoDB()
-    console.log(`server running on port ${PORT}`)
+app.get("*", (res,req) => {
+  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"))
 })
+
+server.listen(PORT, () => {
+  connectToMongoDB();
+  console.log(`server running on port ${PORT}`);
+});

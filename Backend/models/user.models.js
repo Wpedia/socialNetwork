@@ -23,8 +23,26 @@ const userSchema = new mongoose.Schema({
     profilePic: {
         type: String,
         default: "",
-    }
-    // createAt, updateAt
+    },
+    status: {
+        type: String,
+        default: "active"
+    },
+    photos: [{
+        type: String  
+    }],
+    friends: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    subscriptions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    followers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
 },
     { timestamps: true }
 )

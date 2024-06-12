@@ -1,35 +1,69 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import './App.css';
+import Home from './pages/home/Home';
+import Login from './pages/login/Login';
+import Signup from './pages/signup/Signup';
+import { Toaster } from 'react-hot-toast';
+import { useAuthContext } from './context/AuthContext';
+import Header from './components/header/Header';
+import Profile from './pages/profile/Profile';
+import UsersPage from './pages/users/Users';
+import Stream from './pages/stream/Stream';
+import Leaders from './pages/leaders/Leaders';
+import Navbar from './components/navbar/Navbar';
+import useLoadAuthUser from './hooks/useLoadAuthUser';
+import Notification from './components/notification/Notification';
+import useListenMessages from './hooks/useListenMessages';
 
 function App() {
-  const [count, setCount] = useState(0)
+  useListenMessages()
+  
+  const { authUser } = useAuthContext();
+  useLoadAuthUser(authUser)
+  const location = useLocation();
+
+  const getTitle = () => {
+    switch (location.pathname) {
+      case '/':
+        return 'Профиль';
+      case '/profile':
+        return 'Профиль';
+      case '/messenger':
+        return 'Месенджер';
+      case '/users':
+        return 'Пользователи';
+      case '/stream':
+        return 'Видео-эфир';
+      case '/leaders':
+        return 'Лидеры';
+      default:
+        return '';
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="flex h-screen overflow-hidden">
+      {authUser && <Navbar />}
+      <div className="flex flex-col flex-1 overflow-y-scroll">
+        {authUser && <Header title={getTitle()} />}
+        <div className="flex-1">
+          <Routes>
+            <Route path="/" element={authUser ? <Profile /> : <Navigate to="/login" />} />
+            <Route path="/messenger/:userId?" element={authUser ? <Home /> : <Navigate to="/login" />} />
+            <Route path="/profile/:profileId?" element={authUser ? <Profile /> : <Navigate to="/login" />} />
+            <Route path="/login" element={!authUser ? <Login /> : <Navigate to="/profile" />} />
+            <Route path="/signup" element={!authUser ? <Signup /> : <Navigate to="/profile" />} />
+            <Route path="/users" element={authUser ? <UsersPage /> : <Navigate to="/login" />} />
+            <Route path="/leaders" element={<Leaders />} />
+          </Routes>
+        </div>
+        <Toaster />
+        <Notification />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
